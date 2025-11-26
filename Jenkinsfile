@@ -4,9 +4,12 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Installing dependencies...'
+                echo 'Creating virtual environment and installing dependencies...'
                 sh '''
-                    pip3 install --user Flask
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install Flask
                 '''
             }
         }
@@ -14,7 +17,10 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                sh 'python3 -m unittest discover -s .'
+                sh '''
+                    . venv/bin/activate
+                    python3 -m unittest discover -s .
+                '''
             }
         }
         
@@ -29,6 +35,7 @@ pipeline {
             steps {
                 echo 'Starting the Flask application...'
                 sh '''
+                    . venv/bin/activate
                     nohup python3 app.py > app.log 2>&1 &
                     echo $! > app.pid
                     sleep 5
